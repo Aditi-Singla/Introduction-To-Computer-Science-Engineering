@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <title>SUDOKU</title>
+  <meta charset="UTF-8">
+  <script src="jquery-1.11.3.min.js"></script>
+  <style type='text/css'>
+  .number--input{
+  	width: 90%;
+  	height: 40px;
+  	text-align: center;
+  	font-family: 'Comic Sans MS'
+  	/*margin: 0px -14px;*/
+  }
+  td{
+  	width:40px;
+  }
+  input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button {  -webkit-appearance: none;  margin: 0;	}  </style>
+
+  <style> 
+ table { 
+ 	border:solid medium; 
+ 	border-collapse: collapse; 
+ 	font-family: 'Comic Sans MS'
+ } 
+ td { 
+ 	border: solid thin; 
+ 	text-align: center;
+ 	width: 90%;
+  	height: 40px;
+ 	padding: 0px;}
+ 	td.number{ 
+ 	padding: 0px 14px; 
+ 		}</style>
+</head>
+<body style="background-color:khaki;font-family:bradley hand itc;font-size:100%" id="body">
+<script type="text/javascript">
+	var sudoku;
+	var sudokuSolution;
+</script>
+<div class="header">
+  <h1 style="color:Maroon;text-align:center;font-size:300%"><u>Sudoku Puzzle</u></h1>
+  <h2 style="color:Maroon;text-align:right;margin-right:5em; font-size:150%">By- Aditi Singla</h2>
+  <h3 style="color:Maroon;text-align:right;margin-right:5em; font-size:150%">2014CS50277</h3>
+</div>
+  <p style="color:Maroon;font-size:150%"><b>Select Difficulty Level:</b></p>
+  <select id="level" class="selectmenu" style="color:Maroon;width: 300px;height: 50px;font-family:bradley hand itc;font-size:20px" >
+  <option value="0" style="text-align:center" ; selected ><b>Easy</b></option>
+  <option value="1" style="text-align:center"><b>Medium</b></option>
+  <option value="2" style="text-align:center"><b>Hard</b></option>
+  </select>
+  <button type="button" onclick="createSudoku();start()" style="color:Maroon;text-align:center;vertical-align:right;width: 300px;height: 40px;font-family:bradley hand itc;font-size:20px"><b>Generate Sudoku Puzzle</b></button>
+    <br><br>
+	
+	<p style="color:Maroon;font-size:150%"><b><u>Basic Rules:</u></b><br><br>
+	A sudoku puzzle is a grid of nine by nine squares or cells, that has been subdivided into nine subgrids or "regions" of three by three cells.<br>
+  	The objective of sudoku is to enter a digit from 1 through 9 in each cell, in such a way that:<br>
+	<b>1.</b> Each horizontal row contains each digit exactly once.<br>
+	<b>2.</b> Each vertical column contains each digit exactly once.<br>
+	<b>3.</b> Each subgrid or region contains each digit exactly once.</p>
+	<script>
+	function RowCheck(arr,row,num){
+		if (arr && arr.length){
+			for (var col=0;col<9;col++){
+				if (arr[row][col]===num)
+					return true;		}	
+		return false;
+		}
+	}
+	function ColCheck(arr,col,num){
+		if (arr && arr.length){
+			for (var row=0;row<9;row++){
+				if (arr[row][col]===num)
+					return true;
+			}	
+		return false;
+		}
+	}
+	function BoxCheck(arr,startrow,startcol,num){
+		if (arr && arr.length){
+			for (var row=0;row<3;row++){
+				for (var col=0;col<3;col++){
+					if (arr[startrow+row][startcol+col]==num)
+						return true;
+				}
+			}
+		return false;
+		}
+	}
+	function isSafe(arr,row,col,num){
+		if ((!RowCheck(arr,row,num)) && (!ColCheck(arr,col,num)) && (!BoxCheck(arr,row-row%3,col-col%3,num)))
+			return true;
+		else
+			return false;
+	}
+	function generator(arr,n){
+		var till=0;                      // arr : 9*9  n = level chosen
+		if (n==0){                       // Places which are later to be kept empty for the player are chosen here and filled with 0, rest remain empty. 
+			till=4;
+		}	
+		if (n==1){
+			till=5;
+		}	
+		if (n==2){
+			till=6;
+		}	
+		for (var r=0;r<9;r+=3){
+			for (var c=0;c<9;c+=3){
+				var counter=0;
+				while (counter<till){
+					var row1=Math.floor(Math.random()*3);
+					var col1=Math.floor(Math.random()*3);
+					if (arr[r+row1][c+col1]!=0){
+						arr[r+row1][c+col1]=0;
+						counter++;
+					}
+				}
+			}
+		}
+		return arr;
+	}
+	function creator(){                      // x : 9*9 array
+		var x = new Array(9);                // Each row is completely assigned 0
+		for (var i = 0; i < 9; i++) {
+ 			x[i] = [0,0,0,0,0,0,0,0,0];
+		}  
+		if (x && x.length){                   // TO avoid null array, since each block of array is again an array of length 9, we need to check that array 
+			for (var row=0;row<9;row+=3){      // should exist and each row should exist!
+				for (var i=0;i<3;i++){          
+					for (var j=0;j<3;j++){       // Fill the diagonal 3 blocks
+						var rand=0;
+						while (!isSafe(x,(row+i),(row+j),rand)){
+							rand=Math.floor((Math.random()*9)+1);
+						}
+						x[row+i][row+j]=rand;
+					}
+				}
+			}
+			return x;
+		}		
+	}
+	function makecopy(arr){
+		var sol = new Array(arr.length);
+		for (var i = 0; i < arr.length; i++) {
+ 			sol[i] = new Array(arr[0].length);
+		}
+		for (var i=0;i<arr.length;i++){
+			for (var j=0;j<arr[0].length;j++){
+				sol[i][j]=arr[i][j];
+			}	
+		}
+		return sol;
+	}
+	function Emptylocation(arr){      //  return the coordinates of the first block containing 0
+		var ans =[-1,-1];
+		if (arr && arr.length){
+			for (var row=0;row<9;row++){
+				for (var col=0;col<9;col++){
+					if (arr[row][col]==0){
+						ans[0]=row;
+						ans[1]=col;
+						return ans;
+					}	
+				}
+			}
+			return ans;
+		}	
+	}
+	function Solver(arr){
+		var row=0;
+		var col=0;
+		var position=Emptylocation(arr);
+		if (position && position.length){
+			if (position[0]==(-1))
+				return true;  // Solved completely
+			else{
+				row=position[0];
+				col=position[1];
+				for (var i=1;i<=9;i++){
+					if (row>=9 || col>=9){
+						return true;
+					}
+					if (isSafe(arr,row,col,i)){
+						arr[row][col]=i;
+						if (Solver(arr))
+							return true;
+						arr[row][col]=0;
+					}
+				}
+			}													
+			return false;
+		}	
+	}
+	function isMember(a,l){
+		for (var i=0;i<l.length;i++){
+			if (a==l[i])
+				return true;
+		}
+		return false;
+	}
+	function makeTableHTML(myArray) {
+    	var result = " <h1 style='color:Maroon;text-align:center;font-size:200%'><u><b>Welcome to Sudoku Puzzle</b></u></h1><h2 style='color:Maroon;text-align:center;font-size:150%'>Here is your puzzle</h1><form id='myForm' name='myForm'><table border=1 style=width:20%;text-align:center align=center> <colgroup> <col span='3' style='background-color:#F0E68C'>  <col span='3' style='background-color:#FF9933'>  <col span='3' style='background-color:#F0E68C'> </colgroup>";
+    	for(var i=0; i<myArray.length; i++) {
+        	result += "<tr>";
+        	for(var j=0; j<myArray[i].length; j++){
+            	if (isMember(i,[3,4,5]) && isMember(j,[0,1,2,6,7,8])){
+            		if (myArray[i][j]==0){
+            			result += "<td style= 'background-color:#FF9933'> <input class='number--input' type='number' STYLE= 'background-color:#FF9933' min='1' max='9' pattern='[1-9]' title = 'A number from 1 to 9' align:'center' name='"+i+""+j+"' required> </input>";}
+ 		           	else
+        	    		result += "<td class='number' style= 'background-color:#FF9933'>"+myArray[i][j]+"</td>";
+        	    }
+        	    else if (isMember(i,[3,4,5]) && isMember(j,[3,4,5])){
+        	    	if (myArray[i][j]==0){
+            			result += "<td  style='background-color:#F0E68C'> <input class='number--input' STYLE='background-color:#F0E68C' type='number' min='1' max='9' pattern='[1-9]' title = 'A number from 1 to 9' align:'center' name='"+i+""+j+"' required> </input>";}
+ 		           	else
+        	    		result += "<td class='number' style= 'background-color:#F0E68C'>"+myArray[i][j]+"</td>";
+        	    }
+        	    else{
+        	    	if (myArray[i][j]==0){
+        	    		if (isMember(i,[0,1,2,6,7,8]) && isMember(j,[0,1,2,6,7,8]))
+            				result += "<td> <input class='number--input' STYLE='background-color:#F0E68C' type='number' min='1' max='9' pattern='[1-9]' title = 'A number from 1 to 9' align:'center' name='"+i+""+j+"' required> </input>";
+            			else
+            				result += "<td> <input class='number--input' STYLE= 'background-color:#FF9933' type='number' min='1' max='9' pattern='[1-9]' title = 'A number from 1 to 9' align:'center' name='"+i+""+j+"' required> </input>";
+            		}		
+ 		           	else
+        	    		result += "<td class='number' >"+myArray[i][j]+"</td>";
+        	    }
+        	}
+        	result += "</tr>";
+    	}
+    	result += "</table><br><input type='submit' value='Submit' style='color:Maroon; margin-right:5em; text-align:center; float:right; width:100px; height: 30px; font-family:bradley hand itc; font-size:20px'></form><br><br><button type='button' onclick='printSol();stop()' style='color:Maroon; text-align:center; margin-right:5em; float:right; width:100px; height:30px; font-family:bradley hand itc; font-size:20px'>Give up</button><div style='font-size:20px'><b>Time elasped: <span id='time'>00:00:00</span></b></div><p id='Conclusion' style='color:Maroon;text-align:center;font-size:150%'></p>";
+    	document.getElementById('body').innerHTML = result;
+		/*document.getElementById('time'),innerHTML = */show();
+		$(document).on('submit','#myForm',function (e) {
+		    //prevent the form from doing a submit
+		    e.preventDefault();
+		    var elem=document.getElementById("myForm").elements;
+			for (var i = 0; i < elem.length-1; i++){        
+				var x = elem[i].name;
+				if (sudokuSolution[Number(x.charAt(0))][Number(x.charAt(1))]!=elem[i].value){
+					document.getElementById("Conclusion").innerHTML = "<b>Sorry,you got it wrong! Better luck next time!<br>Press refresh to Replay.</b>";
+					stop();
+					return 0;
+				}	
+	        }
+	        stop();
+	        document.getElementById("Conclusion").innerHTML = "<b> Congratulations, you did it !! <br>Press refresh to Replay.</b>";
+		    return false;
+		})
+	    return 0;
+	} 
+	function makeTableHTMLsol(myArray) {
+    	var result = " <h1 style='color:Maroon;text-align:center;font-size:200%'><b>Unfortunately, you Gave up.</b></h1><h2 style='color:Maroon;text-align:center;font-size:150%'>Here is the solution to your puzzle:</h1><table border=1 style=width:20%;text-align:center align=center> <colgroup> <col span='3' style='background-color:#F0E68C'>  <col span='3' style='background-color:#FF9933'>  <col span='3' style='background-color:#F0E68C'> </colgroup>";
+    	for(var i=0; i<myArray.length; i++) {
+        	result += "<tr>";
+        	for(var j=0; j<myArray[i].length; j++){
+            	if (isMember(i,[3,4,5]) && isMember(j,[0,1,2,6,7,8])){
+            		result += "<td class='number' style= 'background-color:#FF9933'>"+myArray[i][j]+"</td>";
+        	    }
+        	    else if (isMember(i,[3,4,5]) && isMember(j,[3,4,5])){
+        	    	result += "<td class='number' style= 'background-color:#F0E68C'>"+myArray[i][j]+"</td>";
+        	    }
+        	    else{
+        	    	result += "<td class='number' >"+myArray[i][j]+"</td>";
+        	    }
+        	}
+        	result += "</tr>";
+    	}
+    	result += "</table><br><p style='color:Maroon;text-align:center;font-size:150%'>Press refresh to Replay.</p>";
+	    document.getElementById('body').innerHTML =result;
+	}    
+	function createSudoku(){
+		var arr1=creator();
+		var levelChosen= 0;
+		levelChosen = document.getElementById("level").value;
+		if (Solver(arr1)){
+			var solutions=makecopy(arr1);
+			var puzzle = new Array(9);
+			for (var i = 0; i < 9; i++) {
+ 				puzzle[i] = [0,0,0,0,0,0,0,0,0];
+			}  
+			puzzle = generator(arr1,levelChosen);
+		}
+		sudokuSolution = solutions;
+		sudoku = puzzle;
+		if (puzzle && puzzle.length)
+			(makeTableHTML(puzzle));
+	}
+	function printSol(){
+		(makeTableHTMLsol(sudokuSolution));
+	}
+	// function checkPuzzle(){
+	// 	for (var i = 0; i < elem.length; i++){        
+	// 		var x = elem[i].name;
+	// 		if (sudokuSolution[Number(x.charAt(0))][Number(x.charAt(1))]!=elem[i].value)
+	// 			document.getElementById("Conclusion").innerHTML = "Sorry,you got it wrong!";
+    //     }
+    //     document.getElementById("Conclusion").innerHTML = "Congratulations, you did it!!";
+    //     return false;
+	// }
+	var	clsStopwatch = function() {
+		var	startAt	= 0;	// Time of last start / resume. (0 if not running)
+		var	lapTime	= 0;	// Time on the clock when last stopped in milliseconds
+
+		var	now	= function() {
+				return (new Date()).getTime(); 
+			}; 
+ 		this.start = function() {
+				startAt	= startAt ? startAt : now();
+			};
+		this.stop = function() {
+				lapTime	= startAt ? lapTime + now() - startAt : lapTime;
+				startAt	= 0; // Paused
+			};
+		this.time = function() {
+				return lapTime + (startAt ? now() - startAt : 0); 
+			};
+	};
+	var x = new clsStopwatch();
+	var $time;
+	var clocktimer;
+	function pad(num, size) {
+		var s = "0000" + num;
+		return s.substr(s.length - size);
+	}
+	function formatTime(time) {
+		var h = m = s = 0;
+		var newTime = '';
+		h = Math.floor( time / (60 * 60 * 1000) );
+		time = time % (60 * 60 * 1000);
+		m = Math.floor( time / (60 * 1000) );
+		time = time % (60 * 1000);
+		s = Math.floor( time / 1000 );
+		newTime = pad(h, 2) + ':' + pad(m, 2) + ':' + pad(s, 2) ;
+		return newTime;
+	}
+	
+	function show() {
+		$time = document.getElementById('time');
+		console.log("hello")
+		update();
+	}
+	function update() {
+		$time.innerHTML = formatTime(x.time());
+	}
+	function start() {
+		clocktimer = setInterval("update()", 1);
+		x.start();
+	}
+	function stop() {
+		x.stop();
+		clearInterval(clocktimer);
+	}
+	</script>
+</body>	
+</html>	
