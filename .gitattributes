@@ -1,0 +1,8 @@
+*.lnk linguist-vendored
+*.skp linguist-vendored
+*.skb linguist-vendored
+*.bmp linguist-vendored
+*.pov linguist-vendored
+*.bak linguist-vendored
+*.ini linguist-vendored
+*.inc linguist-vendored
